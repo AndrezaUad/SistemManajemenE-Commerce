@@ -15,3 +15,4 @@ public class LaporanPenjualan extends Laporan {
         System.out.println("Pendapatan Tahunan: " + pendapatanTahunan);
     }
 }
+

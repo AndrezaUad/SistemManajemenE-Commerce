@@ -10,8 +10,4 @@ public class Pembayaran {
         return true;
     }
 
-    public boolean pengembalianDana(String idTransaksi) {
-        System.out.println("Dana dengan ID Transaksi " + idTransaksi + " dikembalikan.");
-        return true;
-    }
 }

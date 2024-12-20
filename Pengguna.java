@@ -11,13 +11,17 @@ public abstract class Pengguna {
         this.password = password;
     }
 
+    public abstract void tampilkanInfo();
+
     public boolean login(String email, String password) {
         return this.email.equals(email) && this.password.equals(password);
     }
 
     public void logout() {
-        System.out.println(nama + " telah logout.");
+        System.out.println("Logout berhasil.");
     }
 
-    public abstract void tampilkanInfo();
+    public String getIdPengguna() {
+        return idPengguna;
+    }
 }
