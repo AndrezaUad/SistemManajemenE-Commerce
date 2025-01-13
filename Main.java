@@ -6,18 +6,16 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         Map<String, Pengguna> penggunaMap = new HashMap<>();
         List<Produk> produkList = new ArrayList<>();
-        Penyimpanan penyimpanan = new Penyimpanan();
+        Penyimpanan penyimpanan = new Penyimpananimpl();
         List<Pesanan> pesananList = new ArrayList<>();
         List<Diskon> daftarDiskon = new ArrayList<>();
         List<Laporan> laporanList = new ArrayList<>();
 
-        // Menambahkan admin dan pelanggan ke sistem
         Admin admin = new Admin("A001", "Admin", "admin@ecom.com", "admin123", "Super Admin");
         Pelanggan pelanggan = new Pelanggan("P001", "Rina", "rina@gmail.com", "pass123", "Jl. Anggrek No. 5");
         penggunaMap.put(admin.email, admin);
         penggunaMap.put(pelanggan.email, pelanggan);
 
-        // Menambahkan produk ke daftar dan penyimpanan
         Produk produk1 = new Produk("PR001", "Laptop", "Elektronik", 10000000, 10);
         Produk produk2 = new Produk("PR002", "Smartphone", "Elektronik", 5000000, 15);
         produkList.add(produk1);
@@ -25,7 +23,6 @@ public class Main {
         penyimpanan.tambahProduk(produk1);
         penyimpanan.tambahProduk(produk2);
 
-        // Menambahkan diskon ke daftar
         Diskon diskon1 = new Diskon("D001", "Diskon 10%", 5000000, new Date(System.currentTimeMillis() - 10000000), new Date(System.currentTimeMillis() + 10000000));
         daftarDiskon.add(diskon1);
 
@@ -36,14 +33,13 @@ public class Main {
             System.out.println("2. Keluar");
             System.out.print("Pilih menu: ");
             int menu = scanner.nextInt();
-            scanner.nextLine(); // Membersihkan buffer
+            scanner.nextLine();
 
             if (menu == 2) {
                 System.out.println("Keluar dari sistem.");
                 break;
             }
 
-            // Proses Login
             System.out.print("Masukkan email: ");
             String email = scanner.nextLine();
             System.out.print("Masukkan password: ");
@@ -80,7 +76,7 @@ public class Main {
             System.out.println("10. Logout");
             System.out.print("Pilih menu: ");
             int menu = scanner.nextInt();
-            scanner.nextLine(); // Membersihkan buffer
+            scanner.nextLine();
 
             if (menu == 10) {
                 admin.logout();
@@ -99,27 +95,24 @@ public class Main {
                     int harga = scanner.nextInt();
                     System.out.print("Masukkan Stok Produk: ");
                     int stok = scanner.nextInt();
-                    scanner.nextLine(); // Membersihkan buffer
+                    scanner.nextLine();
 
                     Produk produk = new Produk(idProduk, namaProduk, kategori, harga, stok);
                     produkList.add(produk);
-                    penyimpanan.tambahProduk(produk); // Menambahkan produk ke penyimpanan
+                    penyimpanan.tambahProduk(produk);
                     System.out.println("Produk berhasil ditambahkan.");
                 }
                 case 2 -> produkList.forEach(Produk::tampilkanProduk);
                 case 3 -> {
-                    // Kelola penyimpanan - tambah stok produk
                     System.out.print("Masukkan ID Produk untuk menambah stok: ");
                     String idProduk = scanner.nextLine();
                     System.out.print("Masukkan jumlah stok yang ingin ditambahkan: ");
                     int jumlah = scanner.nextInt();
-                    scanner.nextLine(); // Membersihkan buffer
+                    scanner.nextLine();
 
-                    // Cari produk berdasarkan ID di produkList
                     Optional<Produk> produkOpt = produkList.stream().filter(p -> p.getIdProduk().equals(idProduk)).findFirst();
                     if (produkOpt.isPresent()) {
                         Produk produk = produkOpt.get();
-                        // Tambahkan stok produk di Penyimpanan dan pada produk
                         penyimpanan.tambahStok(idProduk, jumlah);
                         produk.setStok(produk.getStok() + jumlah); // Memperbarui stok produk
                         System.out.println("Stok produk " + produk.getNama() + " berhasil ditambahkan. Stok baru: " + produk.getStok());
@@ -129,7 +122,6 @@ public class Main {
                 }
                 case 4 -> pesananList.forEach(pesanan -> System.out.println("Pesanan ID: " + pesanan.getIdPesanan() + ", Total: " + pesanan.hitungTotal()));
                 case 5 -> {
-                    // Mengelola diskon
                     System.out.println("=== Kelola Diskon ===");
                     System.out.print("Masukkan ID Diskon: ");
                     String idDiskon = scanner.nextLine();
@@ -150,14 +142,12 @@ public class Main {
                     System.out.println("Diskon berhasil ditambahkan.");
                 }
                 case 6 -> {
-                    // Membuat laporan penjualan
                     System.out.println("=== Laporan Penjualan ===");
                     System.out.print("Masukkan ID Laporan: ");
                     String idLaporan = scanner.nextLine();
                     System.out.print("Masukkan Rentang Tanggal Laporan: ");
                     String rentangTanggal = scanner.nextLine();
 
-                    // Menghitung total pendapatan bulanan dan tahunan
                     int totalBulanan = 0, totalTahunan = 0;
                     for (Pesanan pesanan : pesananList) {
                         totalTahunan += pesanan.hitungTotal();
@@ -181,13 +171,11 @@ public class Main {
                     }
                 }
                 case 8 -> {
-                    // Menghapus produk
                     System.out.print("Masukkan ID Produk yang ingin dihapus: ");
                     String idProduk = scanner.nextLine();
-                    penyimpanan.hapusProduk(idProduk);  // Menghapus produk dari penyimpanan
+                    penyimpanan.hapusProduk(idProduk);
                 }
                 case 9 -> {
-                    // Memperbarui produk
                     System.out.print("Masukkan ID Produk yang ingin diperbarui: ");
                     String idProduk = scanner.nextLine();
                     System.out.print("Masukkan Nama Baru: ");
@@ -198,7 +186,7 @@ public class Main {
                     int harga = scanner.nextInt();
                     System.out.print("Masukkan Stok Baru: ");
                     int stok = scanner.nextInt();
-                    scanner.nextLine(); // Membersihkan buffer
+                    scanner.nextLine();
 
                     penyimpanan.perbaruiProduk(idProduk, nama, kategori, harga, stok);
                 }
@@ -216,7 +204,7 @@ public class Main {
             System.out.println("4. Logout");
             System.out.print("Pilih menu: ");
             int menu = scanner.nextInt();
-            scanner.nextLine(); // Membersihkan buffer
+            scanner.nextLine();
 
             if (menu == 4) {
                 pelanggan.logout();
@@ -225,7 +213,6 @@ public class Main {
 
             switch (menu) {
                 case 1 -> {
-                    // Membuat pesanan
                     Pesanan pesanan = new Pesanan("PES" + System.currentTimeMillis(), new Date());
                     while (true) {
                         System.out.print("Masukkan ID Produk untuk ditambahkan (atau 'exit' untuk selesai): ");
@@ -246,9 +233,9 @@ public class Main {
                         }
                     }
                     pesananList.add(pesanan);
-                    simpanRiwayatPembelian(pelanggan, pesanan); // Simpan riwayat ke file
+                    simpanRiwayatPembelian(pelanggan, pesanan);
                 }
-                case 2 -> bacaRiwayatPembelian(pelanggan); // Membaca riwayat pembelian dari file
+                case 2 -> bacaRiwayatPembelian(pelanggan);
                 default -> System.out.println("Menu tidak valid.");
             }
         }

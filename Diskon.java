@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Diskon {
     private String idDiskon;
@@ -6,6 +8,7 @@ public class Diskon {
     private int minPembelian;
     private Date tglMulai;
     private Date tglAkhir;
+    private List<Pesanan> pesananList;
 
     public Diskon(String idDiskon, String jenis, int minPembelian, Date tglMulai, Date tglAkhir) {
         this.idDiskon = idDiskon;
@@ -13,6 +16,7 @@ public class Diskon {
         this.minPembelian = minPembelian;
         this.tglMulai = tglMulai;
         this.tglAkhir = tglAkhir;
+        this.pesananList = new ArrayList<>();
     }
 
     public void hitungDiskon(int totalPembelian) {
@@ -25,5 +29,19 @@ public class Diskon {
 
     public boolean valid(Date tanggal) {
         return tanggal.after(tglMulai) && tanggal.before(tglAkhir);
+    }
+
+    public List<Pesanan> getPesananList() {
+        return pesananList;
+    }
+
+    public void tambahPesanan(Pesanan pesanan) {
+        if (!pesananList.contains(pesanan)) {
+            pesananList.add(pesanan);
+            pesanan.setDiskon(this); // Sinkronisasi ke sisi Pesanan
+        }
+    }
+
+    public void tambahProduk(Pesanan pesanan) {
     }
 }

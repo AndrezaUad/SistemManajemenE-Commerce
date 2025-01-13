@@ -1,42 +1,36 @@
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 
 public class GUI {
-
     private JFrame frame;
-    private JPanel panelLogin, panelAdmin, panelPelanggan;
-    private JTextField tfEmail, tfPassword;
-    private JButton btnLogin, btnLogoutAdmin, btnLogoutPelanggan;
-    private Map<String, Pengguna> penggunaMap;
-    private List<Produk> produkList;
-    private Penyimpanan penyimpanan;
-    private List<Pesanan> pesananList;
-    private List<Diskon> daftarDiskon;
-    private List<Laporan> laporanList;
-    private JTextArea textArea;
+    private JPanel panel;
+    private Map<String, Pengguna> penggunaMap = new HashMap<>();
+    private List<Produk> produkList = new ArrayList<>();
+    private Penyimpanan penyimpanan = new Penyimpananimpl();
+    private List<Pesanan> pesananList = new ArrayList<>();
+    private List<Diskon> daftarDiskon = new ArrayList<>();
+    private List<Laporan> laporanList = new ArrayList<>();
+    private Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new GUI().initialize());
-    }
+    public GUI() {
+        frame = new JFrame("Sistem E-Commerce");
+        panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Menutup aplikasi saat jendela ditutup
+        frame.setSize(400, 300); // Menentukan ukuran frame
+        frame.add(panel); // Menambahkan panel utama ke frame
+        frame.setVisible(true); // Menampilkan GUI
 
-    public void initialize() {
-        penggunaMap = new HashMap<>();
-        produkList = new ArrayList<>();
-        penyimpanan = new Penyimpanan();
-        pesananList = new ArrayList<>();
-        daftarDiskon = new ArrayList<>();
-        laporanList = new ArrayList<>();
-
-        // Menambahkan admin dan pelanggan ke sistem
+        // Setup pengguna
         Admin admin = new Admin("A001", "Admin", "admin@ecom.com", "admin123", "Super Admin");
         Pelanggan pelanggan = new Pelanggan("P001", "Rina", "rina@gmail.com", "pass123", "Jl. Anggrek No. 5");
         penggunaMap.put(admin.email, admin);
         penggunaMap.put(pelanggan.email, pelanggan);
 
-        // Menambahkan produk ke daftar dan penyimpanan
+        // Setup produk
         Produk produk1 = new Produk("PR001", "Laptop", "Elektronik", 10000000, 10);
         Produk produk2 = new Produk("PR002", "Smartphone", "Elektronik", 5000000, 15);
         produkList.add(produk1);
@@ -44,291 +38,341 @@ public class GUI {
         penyimpanan.tambahProduk(produk1);
         penyimpanan.tambahProduk(produk2);
 
-        // Menambahkan diskon ke daftar
+        // Setup diskon
         Diskon diskon1 = new Diskon("D001", "Diskon 10%", 5000000, new Date(System.currentTimeMillis() - 10000000), new Date(System.currentTimeMillis() + 10000000));
         daftarDiskon.add(diskon1);
 
-        // Setup frame
-        frame = new JFrame("Sistem E-Commerce");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
-
-        // Panel login
-        panelLogin = new JPanel();
-        panelLogin.setLayout(new GridLayout(3, 2));
-        JLabel lblEmail = new JLabel("Email:");
-        tfEmail = new JTextField();
-        JLabel lblPassword = new JLabel("Password:");
-        tfPassword = new JPasswordField();
-        btnLogin = new JButton("Login");
-
-        panelLogin.add(lblEmail);
-        panelLogin.add(tfEmail);
-        panelLogin.add(lblPassword);
-        panelLogin.add(tfPassword);
-        panelLogin.add(new JLabel());
-        panelLogin.add(btnLogin);
-
-        frame.getContentPane().add(panelLogin, BorderLayout.CENTER);
-
-        // Text area untuk menampilkan output
-        textArea = new JTextArea(10, 40);
-        textArea.setEditable(false);
-        frame.getContentPane().add(new JScrollPane(textArea), BorderLayout.SOUTH);
-
-        // Action listener untuk login
-        btnLogin.addActionListener(e -> login());
-
-        frame.setVisible(true);
+        setupLoginPage();
     }
 
-    private void login() {
-        String email = tfEmail.getText();
-        String password = tfPassword.getText();
-        Pengguna pengguna = penggunaMap.get(email);
+    private void setupLoginPage() {
+        JPanel loginPanel = new JPanel();
+        JLabel emailLabel = new JLabel("Email:");
+        JTextField emailField = new JTextField(20);
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField(20);
+        JButton loginButton = new JButton("Login");
 
-        if (pengguna != null && pengguna.login(email, password)) {
-            textArea.setText("Login berhasil.\n");
-            pengguna.tampilkanInfo();
+        loginPanel.add(emailLabel);
+        loginPanel.add(emailField);
+        loginPanel.add(passwordLabel);
+        loginPanel.add(passwordField);
+        loginPanel.add(loginButton);
 
-            if (pengguna instanceof Admin) {
-                handleAdminMenu((Admin) pengguna);
-            } else if (pengguna instanceof Pelanggan) {
-                handlePelangganMenu((Pelanggan) pengguna);
-            }
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String email = emailField.getText();
+                String password = new String(passwordField.getPassword());
 
-        } else {
-            textArea.setText("Email atau password salah.\n");
-        }
-    }
-
-    private void handleAdminMenu(Admin admin) {
-        panelLogin.setVisible(false);
-
-        panelAdmin = new JPanel();
-        panelAdmin.setLayout(new GridLayout(10, 1));
-
-        JButton btnAddProduct = new JButton("Tambah Produk");
-        JButton btnViewProducts = new JButton("Lihat Daftar Produk");
-        JButton btnManageStock = new JButton("Kelola Penyimpanan");
-        JButton btnViewOrders = new JButton("Lihat Pesanan");
-        JButton btnManageDiscounts = new JButton("Kelola Diskon");
-        JButton btnCreateReport = new JButton("Buat Laporan Penjualan");
-        JButton btnViewReports = new JButton("Lihat Laporan Penjualan");
-        JButton btnRemoveProduct = new JButton("Hapus Produk");
-        JButton btnUpdateProduct = new JButton("Perbarui Produk");
-        btnLogoutAdmin = new JButton("Logout");
-
-        panelAdmin.add(btnAddProduct);
-        panelAdmin.add(btnViewProducts);
-        panelAdmin.add(btnManageStock);
-        panelAdmin.add(btnViewOrders);
-        panelAdmin.add(btnManageDiscounts);
-        panelAdmin.add(btnCreateReport);
-        panelAdmin.add(btnViewReports);
-        panelAdmin.add(btnRemoveProduct);
-        panelAdmin.add(btnUpdateProduct);
-        panelAdmin.add(btnLogoutAdmin);
-
-        frame.getContentPane().removeAll();
-        frame.getContentPane().add(panelAdmin, BorderLayout.CENTER);
-        frame.revalidate();
-        frame.repaint();
-
-        // Action listener untuk logout admin
-        btnLogoutAdmin.addActionListener(e -> logoutAdmin());
-
-        // Implementasi action listener untuk admin
-        btnAddProduct.addActionListener(e -> addProduct());
-        btnViewProducts.addActionListener(e -> viewProducts());
-        btnRemoveProduct.addActionListener(e -> removeProduct());
-        btnUpdateProduct.addActionListener(e -> updateProduct());
-        btnManageStock.addActionListener(e -> manageStock());
-        btnManageDiscounts.addActionListener(e -> manageDiscounts());
-        btnCreateReport.addActionListener(e -> createReport());
-        btnViewReports.addActionListener(e -> viewReports());
-
-    }
-
-    private void logoutAdmin() {
-        panelAdmin.setVisible(false);
-        panelLogin.setVisible(true);
-        frame.revalidate();
-        frame.repaint();
-    }
-
-    private void handlePelangganMenu(Pelanggan pelanggan) {
-        panelLogin.setVisible(false);
-
-        panelPelanggan = new JPanel();
-        panelPelanggan.setLayout(new GridLayout(4, 1));
-
-        JButton btnCreateOrder = new JButton("Buat Pesanan");
-        JButton btnViewHistory = new JButton("Lihat Riwayat Pembelian");
-        JButton btnUpdateProfile = new JButton("Perbarui Profil");
-        btnLogoutPelanggan = new JButton("Logout");
-
-        panelPelanggan.add(btnCreateOrder);
-        panelPelanggan.add(btnViewHistory);
-        panelPelanggan.add(btnUpdateProfile);
-        panelPelanggan.add(btnLogoutPelanggan);
-
-        frame.getContentPane().removeAll();
-        frame.getContentPane().add(panelPelanggan, BorderLayout.CENTER);
-        frame.revalidate();
-        frame.repaint();
-
-        // Action listener untuk logout pelanggan
-        btnLogoutPelanggan.addActionListener(e -> logoutPelanggan());
-
-        // Implementasi action listener untuk menu pelanggan
-        btnCreateOrder.addActionListener(e -> createOrder(pelanggan));
-    }
-
-    private void logoutPelanggan() {
-        panelPelanggan.setVisible(false);
-        panelLogin.setVisible(true);
-        frame.revalidate();
-        frame.repaint();
-    }
-
-    private void addProduct() {
-        String idProduk = JOptionPane.showInputDialog("Masukkan ID Produk:");
-        String namaProduk = JOptionPane.showInputDialog("Masukkan Nama Produk:");
-        String kategori = JOptionPane.showInputDialog("Masukkan Kategori Produk:");
-        int harga = Integer.parseInt(JOptionPane.showInputDialog("Masukkan Harga Produk:"));
-        int stok = Integer.parseInt(JOptionPane.showInputDialog("Masukkan Stok Produk:"));
-
-        Produk produk = new Produk(idProduk, namaProduk, kategori, harga, stok);
-        produkList.add(produk);
-        penyimpanan.tambahProduk(produk);
-        textArea.append("Produk berhasil ditambahkan.\n");
-    }
-
-    private void viewProducts() {
-        textArea.setText("");
-        for (Produk produk : produkList) {
-            textArea.append(produk.toString() + "\n");
-        }
-    }
-
-    private void removeProduct() {
-        String idProduk = JOptionPane.showInputDialog("Masukkan ID Produk untuk dihapus:");
-        Produk produkToRemove = null;
-        for (Produk produk : produkList) {
-            if (produk.getIdProduk().equals(idProduk)) {
-                produkToRemove = produk;
-                break;
-            }
-        }
-        if (produkToRemove != null) {
-            produkList.remove(produkToRemove);
-            penyimpanan.hapusProduk(idProduk);
-            textArea.append("Produk berhasil dihapus.\n");
-        } else {
-            textArea.append("Produk tidak ditemukan.\n");
-        }
-    }
-
-    private void updateProduct() {
-        String idProduk = JOptionPane.showInputDialog("Masukkan ID Produk untuk diperbarui:");
-        Produk produkToUpdate = null;
-        for (Produk produk : produkList) {
-            if (produk.getIdProduk().equals(idProduk)) {
-                produkToUpdate = produk;
-                break;
-            }
-        }
-        if (produkToUpdate != null) {
-            String nama = JOptionPane.showInputDialog("Masukkan Nama Baru:", produkToUpdate.getNama());
-            String kategori = JOptionPane.showInputDialog("Masukkan Kategori Baru:", produkToUpdate.getKategori());
-            int harga = Integer.parseInt(JOptionPane.showInputDialog("Masukkan Harga Baru:", produkToUpdate.getHarga()));
-            int stok = Integer.parseInt(JOptionPane.showInputDialog("Masukkan Stok Baru:", produkToUpdate.getStok()));
-
-            produkToUpdate.setNama(nama);
-            produkToUpdate.setKategori(kategori);
-            produkToUpdate.setHarga(harga);
-            produkToUpdate.setStok(stok);
-
-            textArea.append("Produk berhasil diperbarui.\n");
-        } else {
-            textArea.append("Produk tidak ditemukan.\n");
-        }
-    }
-
-    private void manageStock() {
-        String idProduk = JOptionPane.showInputDialog("Masukkan ID Produk untuk menambah stok:");
-        int jumlah = Integer.parseInt(JOptionPane.showInputDialog("Masukkan jumlah stok yang ingin ditambahkan:"));
-        for (Produk produk : produkList) {
-            if (produk.getIdProduk().equals(idProduk)) {
-                penyimpanan.tambahStok(idProduk, jumlah);
-                produk.setStok(produk.getStok() + jumlah);
-                textArea.append("Stok produk berhasil ditambahkan. Stok baru: " + produk.getStok() + "\n");
-                return;
-            }
-        }
-        textArea.append("Produk tidak ditemukan.\n");
-    }
-
-    private void manageDiscounts() {
-        String idDiskon = JOptionPane.showInputDialog("Masukkan ID Diskon:");
-        String jenisDiskon = JOptionPane.showInputDialog("Masukkan Jenis Diskon:");
-        int minPembelian = Integer.parseInt(JOptionPane.showInputDialog("Masukkan Minimum Pembelian untuk Diskon:"));
-        long tglMulaiMillis = Long.parseLong(JOptionPane.showInputDialog("Masukkan Tanggal Mulai (in ms):"));
-        long tglAkhirMillis = Long.parseLong(JOptionPane.showInputDialog("Masukkan Tanggal Akhir (in ms):"));
-        Date tglMulai = new Date(tglMulaiMillis);
-        Date tglAkhir = new Date(tglAkhirMillis);
-
-        Diskon diskon = new Diskon(idDiskon, jenisDiskon, minPembelian, tglMulai, tglAkhir);
-        daftarDiskon.add(diskon);
-        textArea.append("Diskon berhasil ditambahkan.\n");
-    }
-
-    private void createReport() {
-        String idLaporan = JOptionPane.showInputDialog("Masukkan ID Laporan:");
-        String rentangTanggal = JOptionPane.showInputDialog("Masukkan Rentang Tanggal Laporan:");
-
-        int totalBulanan = 0, totalTahunan = 0;
-        for (Pesanan pesanan : pesananList) {
-            totalTahunan += pesanan.hitungTotal();
-            if (/* kondisi untuk pendapatan bulanan */ true) {
-                totalBulanan += pesanan.hitungTotal();
-            }
-        }
-
-        LaporanPenjualan laporanPenjualan = new LaporanPenjualan(idLaporan, rentangTanggal, totalBulanan, totalTahunan);
-        laporanList.add(laporanPenjualan);
-        laporanPenjualan.buatLaporan();
-        textArea.append("Laporan penjualan berhasil dibuat.\n");
-    }
-
-    private void viewReports() {
-        textArea.setText("");
-        for (Laporan laporan : laporanList) {
-            laporan.tampilkanLaporan();
-        }
-    }
-
-    private void createOrder(Pelanggan pelanggan) {
-        Pesanan pesanan = new Pesanan("PES001", new Date());
-        while (true) {
-            String idProduk = JOptionPane.showInputDialog("Masukkan ID Produk untuk ditambahkan (atau 'exit' untuk selesai):");
-            if (idProduk.equalsIgnoreCase("exit")) break;
-
-            Optional<Produk> produkOpt = produkList.stream().filter(p -> p.getIdProduk().equals(idProduk)).findFirst();
-            if (produkOpt.isPresent()) {
-                Produk produk = produkOpt.get();
-                if (penyimpanan.cekKetersediaan(idProduk)) {
-                    pesanan.tambahProduk(produk);
-                    penyimpanan.kurangiStok(idProduk, 1);
-                    textArea.append("Produk ditambahkan ke pesanan.\n");
+                Pengguna pengguna = penggunaMap.get(email);
+                if (pengguna != null && pengguna.login(email, password)) {
+                    JOptionPane.showMessageDialog(frame, "Login berhasil!");
+                    showMainMenu(pengguna);
                 } else {
-                    textArea.append("Produk tidak tersedia.\n");
+                    JOptionPane.showMessageDialog(frame, "Email atau password salah.");
                 }
-            } else {
-                textArea.append("Produk tidak ditemukan.\n");
             }
+        });
+
+        frame.getContentPane().removeAll();
+        frame.add(loginPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void showMainMenu(Pengguna pengguna) {
+        JPanel mainMenuPanel = new JPanel();
+        mainMenuPanel.setLayout(new BoxLayout(mainMenuPanel, BoxLayout.Y_AXIS));
+
+        if (pengguna instanceof Admin) {
+            showAdminMenu(mainMenuPanel);
+        } else if (pengguna instanceof Pelanggan) {
+            showPelangganMenu(mainMenuPanel);
         }
-        pesananList.add(pesanan);
+
+        frame.getContentPane().removeAll();
+        frame.add(mainMenuPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void showAdminMenu(JPanel panel) {
+        JButton tambahProdukButton = new JButton("Tambah Produk");
+        JButton lihatProdukButton = new JButton("Lihat Daftar Produk");
+        JButton kelolaPenyimpananButton = new JButton("Kelola Penyimpanan");
+        JButton lihatPesananButton = new JButton("Lihat Pesanan");
+        JButton kelolaDiskonButton = new JButton("Kelola Diskon");
+        JButton buatLaporanButton = new JButton("Buat Laporan Penjualan");
+        JButton lihatLaporanButton = new JButton("Lihat Laporan Penjualan");
+        JButton hapusProdukButton = new JButton("Hapus Produk");
+        JButton perbaruiProdukButton = new JButton("Perbarui Produk");
+        JButton logoutButton = new JButton("Logout");
+
+        panel.add(tambahProdukButton);
+        panel.add(lihatProdukButton);
+        panel.add(kelolaPenyimpananButton);
+        panel.add(lihatPesananButton);
+        panel.add(kelolaDiskonButton);
+        panel.add(buatLaporanButton);
+        panel.add(lihatLaporanButton);
+        panel.add(hapusProdukButton);
+        panel.add(perbaruiProdukButton);
+        panel.add(logoutButton);
+
+        tambahProdukButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showTambahProdukForm();
+            }
+        });
+
+        lihatProdukButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showLihatProduk();
+            }
+        });
+
+        kelolaPenyimpananButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showKelolaPenyimpanan();
+            }
+        });
+
+        kelolaDiskonButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showKelolaDiskon();
+            }
+        });
+
+        buatLaporanButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showBuatLaporanPenjualan();
+            }
+        });
+
+        lihatLaporanButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showLihatLaporanPenjualan();
+            }
+        });
+
+        logoutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setupLoginPage();
+            }
+        });
+    }
+
+    private void showPelangganMenu(JPanel panel) {
+        JButton buatPesananButton = new JButton("Buat Pesanan");
+        JButton lihatRiwayatButton = new JButton("Lihat Riwayat Pembelian");
+        JButton perbaruiProfilButton = new JButton("Perbarui Profil");
+        JButton logoutButton = new JButton("Logout");
+
+        panel.add(buatPesananButton);
+        panel.add(lihatRiwayatButton);
+        panel.add(perbaruiProfilButton);
+        panel.add(logoutButton);
+
+        logoutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setupLoginPage();
+            }
+        });
+
+        buatPesananButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showBuatPesananForm();
+            }
+        });
+
+        lihatRiwayatButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showRiwayatPembelian();
+            }
+        });
+
+        perbaruiProfilButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showPerbaruiProfilForm();
+            }
+        });
+    }
+
+    private void showTambahProdukForm() {
+        JPanel tambahProdukPanel = new JPanel();
+        JLabel idLabel = new JLabel("ID Produk:");
+        JTextField idField = new JTextField(20);
+        JLabel namaLabel = new JLabel("Nama Produk:");
+        JTextField namaField = new JTextField(20);
+        JLabel kategoriLabel = new JLabel("Kategori Produk:");
+        JTextField kategoriField = new JTextField(20);
+        JLabel hargaLabel = new JLabel("Harga Produk:");
+        JTextField hargaField = new JTextField(20);
+        JLabel stokLabel = new JLabel("Stok Produk:");
+        JTextField stokField = new JTextField(20);
+        JButton submitButton = new JButton("Tambah Produk");
+
+        tambahProdukPanel.add(idLabel);
+        tambahProdukPanel.add(idField);
+        tambahProdukPanel.add(namaLabel);
+        tambahProdukPanel.add(namaField);
+        tambahProdukPanel.add(kategoriLabel);
+        tambahProdukPanel.add(kategoriField);
+        tambahProdukPanel.add(hargaLabel);
+        tambahProdukPanel.add(hargaField);
+        tambahProdukPanel.add(stokLabel);
+        tambahProdukPanel.add(stokField);
+        tambahProdukPanel.add(submitButton);
+
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String id = idField.getText();
+                String nama = namaField.getText();
+                String kategori = kategoriField.getText();
+                int harga = Integer.parseInt(hargaField.getText());
+                int stok = Integer.parseInt(stokField.getText());
+
+                Produk produk = new Produk(id, nama, kategori, harga, stok);
+                produkList.add(produk);
+                penyimpanan.tambahProduk(produk);
+                JOptionPane.showMessageDialog(frame, "Produk berhasil ditambahkan.");
+                showAdminMenu(panel);
+            }
+        });
+
+        frame.getContentPane().removeAll();
+        frame.add(tambahProdukPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void showLihatProduk() {
+        StringBuilder produkListStr = new StringBuilder();
+        for (Produk produk : produkList) {
+            produkListStr.append(produk.toString()).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(frame, produkListStr.toString());
+    }
+
+    private void showKelolaPenyimpanan() {
+        StringBuilder penyimpananListStr = new StringBuilder();
+        for (Produk produk : produkList) {
+            penyimpananListStr.append(produk.toString()).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(frame, penyimpananListStr.toString());
+    }
+
+    private void showKelolaDiskon() {
+        StringBuilder diskonListStr = new StringBuilder();
+        for (Diskon diskon : daftarDiskon) {
+            diskonListStr.append(diskon.toString()).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(frame, diskonListStr.toString());
+    }
+
+      private void showBuatLaporanPenjualan() {
+        // Logic untuk membuat laporan penjualan (simulasi)
+        LaporanPenjualan laporan = new LaporanPenjualan("Laporan Penjualan", new Date(), 100000000);
+        laporanList.add(laporan);
+        JOptionPane.showMessageDialog(frame, "Laporan Penjualan telah dibuat.");
+    }
+
+    private void showLihatLaporanPenjualan() {
+        StringBuilder laporanListStr = new StringBuilder();
+        for (Laporan laporan : laporanList) {
+            laporanListStr.append(laporan.toString()).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(frame, laporanListStr.toString());
+    }
+
+    private void showBuatPesananForm() {
+        JPanel buatPesananPanel = new JPanel();
+        JLabel produkLabel = new JLabel("Masukkan ID Produk:");
+        JTextField produkField = new JTextField(20);
+        JButton tambahButton = new JButton("Tambah Produk ke Pesanan");
+        JButton submitButton = new JButton("Buat Pesanan");
+
+        buatPesananPanel.add(produkLabel);
+        buatPesananPanel.add(produkField);
+        buatPesananPanel.add(tambahButton);
+        buatPesananPanel.add(submitButton);
+
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Pesanan pesanan;
+                pesanan = new Pesanan("PES" + System.currentTimeMillis(), new Date());
+                pesananList.add(pesanan);
+                JOptionPane.showMessageDialog(frame, "Pesanan berhasil dibuat.");
+                showPelangganMenu(panel);
+            }
+        });
+
+        frame.getContentPane().removeAll();
+        frame.add(buatPesananPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void showRiwayatPembelian() {
+        StringBuilder riwayatPembelian = new StringBuilder();
+        for (Pesanan pesanan : pesananList) {
+            riwayatPembelian.append(pesanan.toString()).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(frame, riwayatPembelian.toString());
+    }
+
+    private void showPerbaruiProfilForm() {
+        JPanel perbaruiProfilPanel = new JPanel();
+        JLabel alamatLabel = new JLabel("Alamat:");
+        JTextField alamatField = new JTextField(20);
+        JButton submitButton = new JButton("Perbarui Profil");
+
+        perbaruiProfilPanel.add(alamatLabel);
+        perbaruiProfilPanel.add(alamatField);
+        perbaruiProfilPanel.add(submitButton);
+
+        submitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String alamat = alamatField.getText();
+                // Update alamat pelanggan
+                Pelanggan pelanggan = (Pelanggan) penggunaMap.get("rina@gmail.com");
+                JOptionPane.showMessageDialog(frame, "Profil berhasil diperbarui.");
+                showPelangganMenu(panel);
+            }
+        });
+
+        frame.getContentPane().removeAll();
+        frame.add(perbaruiProfilPanel);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new GUI();
+            }
+        });
     }
 }

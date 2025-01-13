@@ -4,6 +4,7 @@ public class Pesanan {
     private String idPesanan;
     private Date tanggal;
     private List<Produk> produkList = new ArrayList<>();
+    private Diskon diskon;
 
     public Pesanan(String idPesanan, Date tanggal) {
         this.idPesanan = idPesanan;
@@ -25,4 +26,14 @@ public class Pesanan {
     public int hitungTotal() {
         return produkList.stream().mapToInt(Produk::getHarga).sum();
     }
+
+    public void setDiskon(Diskon diskon) {
+        if (this.diskon != diskon) {
+            this.diskon = diskon;
+            if (diskon != null) {
+                diskon.tambahProduk(this); // Sinkronisasi ke sisi Diskon
+            }
+        }
+    }
+
 }
